@@ -1,0 +1,57 @@
+ Hard Level - Aim:
+To develop a JSP-based student portal that includes a form for entering attendance details and saves them to the database using a servlet.
+1. MySQL Table
+CREATE DATABASE studentDB;
+USE studentDB;
+
+CREATE TABLE attendance (
+  roll_no INT,
+  name VARCHAR(100),
+  present BOOLEAN
+);
+2. attendance.jsp
+<%@ page import="java.sql.*" %>
+<html>
+<body>
+<form method="post" action="AttendanceServlet">
+    Roll No: <input type="text" name="roll"><br>
+    Name: <input type="text" name="name"><br>
+    Present: <input type="checkbox" name="present"><br>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
+3. AttendanceServlet.java
+import java.io.*;
+import java.sql.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class AttendanceServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int roll = Integer.parseInt(request.getParameter("roll"));
+        String name = request.getParameter("name");
+        boolean present = request.getParameter("present") != null;
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentDB", "root", "yourpassword");
+
+            PreparedStatement ps = con.prepareStatement("INSERT INTO attendance VALUES (?, ?, ?)");
+            ps.setInt(1, roll);
+            ps.setString(2, name);
+            ps.setBoolean(3, present);
+
+            int i = ps.executeUpdate();
+            if(i > 0) {
+                out.println("Attendance submitted successfully.");
+            }
+            con.close();
+        } catch(Exception e) {
+            out.println(e);
+        }
+    }
+}
